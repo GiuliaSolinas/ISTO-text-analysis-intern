@@ -13,6 +13,8 @@ We want to understand what is the "mood" on KIVA as a social platform.
 **Tasks**
 1. Understand the data structure and merge the dataset saved in \general.
 2. Look into the text analysis resources and make a list of models that can be used for the analysis.
+  + Use the DataCamp course Introduction to Text Mining to understand the recommended packages and steps.
+  + Try to replicate the workflow on the KIVA project. 
 3. Find the relative R packages
 4. Test the packages with the data: this step may require data manipulation-
 
