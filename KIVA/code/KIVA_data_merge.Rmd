@@ -1,0 +1,88 @@
+---
+title: "KIVA_data_merge"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+NOTE FOR OLU: Read this below and look into the markdown documentation if you need more information. We are using this file to merge the data and get the final dataset for the text analysis. 
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Loading packages
+```{r}
+library(readr) ##importing dataset
+library(tidyverse) ##this is an umbrella package for data management
+library(tidytext) ##package for data tokenization
+library(ggplot2) ##data visualization
+```
+
+These are the most useful packages to start exploring the data. See also the online book [R for Data Science](https://r4ds.had.co.nz/index.html). See also   https://www.tandfonline.com/doi/pdf/10.1080/19312458.2017.1387238?needAccess=true
+
+## Importing data into the environment
+
+There are two sources of data that I downloaded from the Kaggle open data project [Data Science for Good](https://www.kaggle.com/kiva/data-science-for-good-kiva-crowdfunding). The first dataset `kiva_loans.csv` contains a list of loans from 2018 and information about their general purpose, posting date and reimbursement. The data can be matched with the provided geo-data.
+
+There is a second set of data `loans.csv` in the folder `\additional snapshot` that includes information about the participants and their motivations to request a loan. We are matching this dataset with the description of the MLIs (hand-collected and in the excel file `KIVA_partners_profile`)  
+
+```{r}
+#Importing the data from the folder \additional snapshots
+loans <- read.csv("P:/Olu/KIVA/data/additional snapshot/loans.csv")
+
+library(readxl)
+KIVA_partners_profile <- read_excel("P:/Olu/KIVA/data/KIVA_partners_profile.xlsx")
+
+
+```
+
+we want to rename the IDs in the KIVA_partners_profile file to do the matching with the loans data.
+
+```{r}
+names(KIVA_partners_profile)[1] <- "partner_id"
+```
+
+## Matching the dataset
+With this step we want to consolidate the description of the loans and of the MLIs' activities. 
+```{r}
+#from the KIVA_partners_profile we keep only those variables that are interesting for the text analysis
+
+partners <- KIVA_partners_profile %>% 
+  select(partner_id, Name, Country, Kiva.Status, MFI.ID.MIX,
+         Exit_Year, profit_organization, Description, 
+         Why_Kiva, Mission)
+
+loans_partners <- merge(loans, partners, by="partner_id", all.x = TRUE)
+
+```
+
+We relocate the variables partner_id close to the other proxies for the partners and we save the data as csv file.
+
+```{r}
+loans_partners <- loans_partners %>% 
+  relocate(partner_id, .before = Name)
+
+save(loans_partners, file = "P:/Olu/KIVA/data/additional snapshot/loans_partners.RData")
+
+#write.csv(loans_partners, file = "P:/Olu/KIVA/data/additional snapshot/loans_partners.csv")
+```
+

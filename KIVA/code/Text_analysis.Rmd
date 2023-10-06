@@ -1,0 +1,265 @@
+---
+title: "Text_analysis"
+output: html_document
+---
+```{r}
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Importing the data
+
+```{r}
+load("P:/Olu/KIVA/data/additional snapshot/loans_partners.RData")
+```
+
+## Loading the packages
+What packages are useful for the analysis? What are the packages that the text analysts consistently use across books/research/examples? 
+
+*Little trick to load packages*: sometimes we need to load a large number of packages and these may or may not be installed on the machine. The package `Pacman`(https://www.linuxfordevices.com/tutorials/linux/pacman-package-manager) can be handy as it install and download those packages that you call with its function `p_load`. (###DONE)
+
+
+```{r}
+#library(#insert a name#)
+
+library(spacyr)     # working with text strings
+library(tidytext)
+library(tidyverse)  # text analysis in R
+library(dplyr)      # SQL-style data processing
+library(NLP)
+library(quanteda)
+library(ggplot2)
+# install.packages("pacman")
+# pacman:: p_load(spacyr, tidytext, quanteda, ggplot2, quanteda, NPL, tidyverse)
+
+```
+
+
+## Data Cleaning.
+
+We are creating a new column in loan_partners file using the tidytext (tibble & dpylr) in order to merge translated data.  A new empty column helps with tracking/undoing changes and could serve as new field for info input- 
+
+### Adding Column
+We want to create a new column that merges both loan data in English as an original language and those translated from other foreign language. (### Done)
+
+```{r}
+library(tibble)
+library(dplyr)
+ #loans_partners<- loans_partners %>%
+  #add_column(Empty_Col2 = NA, .after="description")
+ #head(loans_partners)
+
+
+ 
+#It is easier if you duplicate the variable and give it a new name (see below). 
+#once you have this variable you move it where you want in the data frame
+#then you substitute the missing values with the values of the proxy description 
+
+loans_partners %>% 
+  mutate (descript_eng = description_translated) %>% 
+  relocate (descript_eng, .after = description_translated) %>% 
+  mutate(descript_eng=ifelse(descript_eng=="", description, descript_eng))
+
+ 
+```
+
+## Text corpus
+- Definition of lemmatization vs. stemming (###Done)
+
+See this [link](https://cran.r-project.org/web/packages/textstem/README.html#stemming-versus-lemmatizing)
+
+
+- How do we transform the data into a text corpus for R? Insert the chunks of code. (###Done)
+
+A corpus contains a "collection of text or speech material that has been brought together according to a predetermined criteria" (Shemolve et. al 2019, p.33) It is often set-up in accordance with the research question or read more here : [link](https://www.mzes.uni-mannheim.de/socialsciencedatalab/article/advancing-text-mining) and        [link](https://cbail.github.io/SICSS_Basic_Text_Analysis.html)
+
+The already installed (tidyverse) and the (tm) package can be used to create Corpus.
+
+With  tidyverse, the contains one word per row and each row has extra info about the name of the document where the word appears and in which order. After this, you can use typical R function like "count", "select" etc to analyze the data. Therefore in our case we don`t need to create a special Corpus object because we are using the "tidytext" pacakge.
+
+Another alternative is to use the tm package to create a Corpus object. We want to do this now. (###Done)
+
+```{r}
+library(tm)
+
+partners_corpus = Corpus(VectorSource(partners$Description))
+
+```
+
+- Which variables can we analyze with text analysis in this dataset?   (###Done?)
+
+Variables that can be analyzed in this text analysis are letters, numbers (integer), logical.   
+
+- Is the data ready for some preliminary analysis or does it need further cleaning? (###Done?)
+
+Data still needs to be cleaned. 
+
+
+- What are the typical cleaning steps for the textual analysis? 
+
+Common Cleaning steps include:
+1- removing stopwords  
+```{r}
+#example
+```
+
+2- converting all text to lowercase 
+```{r}
+#example
+```
+
+3- removing whitespace 
+```{r}
+
+```
+
+4- removing mispellings 
+5- duplicate rows 
+6- numeric values stored as text/character etc.
+
+Example: Removing stop words i.e "the", "of", "to". For example in column "Mission"(partners) there are stop words that can be removed
+```{r}
+select(loans, loan_name) %>%
+
+```
+
+
+
+## Tokenization
+- Which chunks of codes should we use to process with tokenization (insert suggested code)? (###Done)
+
+More info about the forms of tokenization, definition, arguments (sub-arguments inclusive) for tokenization can be found here
+[link](https://www.tidytextmining.com/tidytext.html) 
+[link](https://www.rdocumentation.org/packages/tidytext/versions/0.3.1/topics/unnest_tokens)
+
+Name of new column, column to be tokenized is to be specified in the "unnest_tokens() function
+
+```{r}
+library(tidytext)
+ partners %>% 
+  unnest_tokens(word, Mission)
+ 
+ ## The "Mission" column is automatically dropped and a new "tokenized colmun" "word" is created.
+```
+
+
+```{r}
+Olu <- partners %>% 
+        unnest_tokens(word, Mission)
+```
+## Representing, filtering, weighting
+
+- How can we find the most recurrent words? (###Done)
+
+The count () function can be used to get a sense of the distribution of values in a data set. #For example, the data-set loans, "irregular" seems to be a recuurrent payment interval to be sure of this we can use the count function to show a breakdowns of how recurrent it is. 
+
+```{r}
+loans %>% count(repayment_interval, sort = TRUE)
+```
+
+
+- Can we group them, for example according to regions, gender, industry? (### Done)
+
+The data allows for grouping by regions, gender, occupation/industry. Beyond these, we can also group the data by loan use (i.e loans used to pay fixed or variable cost or purchase of tangible vs intangible goods), amount received. Analysed together, this might allow us tease out possible consistency and/or recurrent themes in the loans
+
+The group_by is used for grouping: After grouping we can apply the count and/or summarise function. Very Important: Always ungroup() after grouping when you've are done with your calculation or anaylsis.
+GS: This chunk needs revision.
+```{r}
+loans %>%
+ group_by(borrower_genders) %>%
+ count(borrower_genders) %>%
+ summarize(n = n()) 
+```
+
+
+- How can we represent/visualize the most recurrent words (by group)?
+
+A Bar Plot ggplot() and a Word Cloud  wordcloud() can be used to visualize recurring words. You can also use other data visualization techniques i.e boxplot using base R (meaning without any specific library). You can read more about it here: 
+[link](https://icds-vubuz.github.io/workshop-tidyverse-visualization/=) ###Error (no package called wordcloud
+)
+```{r}
+library(wordcloud)
+```
+We can create a bar chart using ggplot.(also possible with the ggplot function are scatterplot, piechart, historgram) Code.You can ead more about it here
+[link](https://ggplot2.tidyverse.org/)
+```{r}
+Sentiments <- KIVA_partners_profile$Description
+  get_sentiments("bing")
+```
+
+
+```{r}
+library(ggplot2)
+ ggplot(Sentiments, aes(x = word, y = n)) +
+   geom_col() +
+   coord_flip() +
+   ggtitle("Review Sentiments Count")
+```
+
+
+## Analyzing
+
+### Uploading dictionaries
+- Which dictionary would be suitable for this dataset? ###Done (but still creating your own dictionary?))
+
+The right dictionary to use depends on what you are looking for or what best answers your central research question.It also depends on the "match between the learning-corpus and the one you want to code" You can find more about this here: 
+[link](https://cbail.github.io/SICSS_Dictionary-Based_Text_Analysis.html)
+
+If you use the tidytext package, the following dictionaries are available at your disposal
+
+  Bing categorizes into a binary group (positive and negative categories)
+   nrc is text based and  useful for categorizing words into varying classes of sentiments such as (fear, joy, positive, negative etc) 
+  afinn is numerical based and assigns scores between -5 and 5 with negative score signifying  negative sentiment and positive score representing positive sentiment 
+  loughran dictionary classifies word into constraining, litigious, negative, positive, superfulous and uncertainty. 
+  
+  You can also make your own dictionary or lexicon of words . You can read more about this here:(###Add code?)   
+[link](https://stackoverflow.com/questions/62304735/how-to-create-a-customized-trade-law-lexicon-for-r-text-analysis) 
+[link](https://rdrr.io/cran/SentimentAnalysis/man/SentimentDictionaryBinary.html)
+[link](https://cbail.github.io/SICSS_Dictionary-Based_Text_Analysis.html)
+
+Using a sentiment dictionary
+```{r}
+ KIVA_partners_profile$Description
+  get_sentiments("bing")
+```
+
+- Can we use two dictionaries together, in what context?
+
+Yes we can used two dictionaries together. To compare analysis, confirm preliminary hypothesis or even for new insights.
+```{r}
+install.packages("textdata")
+
+library(textdata)
+ partners$Description
+  get_sentiments("nrc")
+
+```
+
+```{r}
+library(textdata)
+ partners$Description
+  get_sentiments("afinn")
+```
+
+
+
+
+
+
+
+### Unsupervised Models (topic models)
+- What should we check before starting coding a topic model (for example, here we do not have multiple documents)?
+- How do we explore the number of topics in our data (include an exemplary code)?
+- How do we choose a number of topics?
+- Can you recommend guidelines to interpret the topics?
