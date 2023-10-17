@@ -20,7 +20,8 @@ We want to understand what is the "mood" on KIVA as a social platform.
 
 ---
 
-### Step 2: Matching KIVA's loans data with the MLI's profiles (I will provide the data)
+### Step 2: Matching KIVA's loans data with the MLI's profiles 
+The MLIs profile data are available at this [link](https://www.dropbox.com/scl/fo/eemyegnvaf4qqrhv9a6h0/h?rlkey=5fhna3dp3qq258wf6626rxyhg&dl=0)
 
 ---
 
